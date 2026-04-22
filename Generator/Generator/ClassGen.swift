@@ -448,7 +448,13 @@ func generateProperties (_ p: Printer,
         if property.description != "" {
             doc (p, cdef, property.description)
         }
-        p ("\(asSingleton ? "static" : "final") public var \(godotPropertyToSwift (property.name)): \(type!)"){
+
+        var swiftPropertyName = godotPropertyToSwift (property.name)
+        if swiftPropertyName == "id" {
+            swiftPropertyName = "godotId"
+        }
+
+        p ("\(asSingleton ? "static" : "final") public var \(swiftPropertyName): \(type!)"){
             p ("get"){
                 p ("return \(getterName) (\(gettterArgName)\(access))")
             }

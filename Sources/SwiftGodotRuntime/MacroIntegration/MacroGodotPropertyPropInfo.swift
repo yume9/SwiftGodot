@@ -308,6 +308,33 @@ public func _propInfo<Root, T>(
     )
 }
 
+/// Internal API.  Array of CaseIterable enum with BinaryInteger RawValue.
+@inline(__always)
+@inlinable
+public func _propInfo<Root, T>(
+    at keyPath: KeyPath<Root, [T]>,
+    name: String,
+    userHint: PropertyHint? = nil,
+    userHintStr: String? = nil,
+    userUsage: PropertyUsageFlags? = nil
+) -> PropInfo where T: RawRepresentable, T: CaseIterable, T.RawValue: BinaryInteger {
+    var userHint = userHint
+    var userHintStr = userHintStr
+    
+    if userHint == nil && userHintStr == nil {
+        userHint = .arrayType
+        userHintStr = "\(Variant.GType.int.rawValue)/\(PropertyHint.enum.rawValue):\(T.allCases.map({"\($0)"}).joined(separator: ","))"
+    }
+    return _propInfoDefault(
+        propertyType: .array,
+        name: name,
+        className: StringName(),
+        hint: userHint,
+        hintStr: userHintStr,
+        usage: userUsage ?? [.default]
+    )
+}
+
 @available(*, unavailable, message: "Type is not supported for @Export")
 @_disfavoredOverload
 public func _propInfo<Root, T>(

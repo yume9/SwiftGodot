@@ -188,6 +188,33 @@ public func _invokeSetter<T>(
     }
 }
 
+/// Internal API. Array of RawRepresentable with VariantConvertible RawValue
+@inline(__always)
+@inlinable
+public func _invokeSetter<T>(
+    _ arguments: borrowing Arguments,
+    _ name: StaticString,
+    _ old: [T],
+    _ set: ([T]) -> Void
+) where T: RawRepresentable, T: CaseIterable, T.RawValue: BinaryInteger, T.RawValue: _GodotBridgeableBuiltin {
+    do {
+        let value = try arguments.argument(ofType: TypedArray<T.RawValue>.self, at: 0)
+        var result: [T] = []
+        result.reserveCapacity(Int(value.size()))
+        for variant in value {
+            let rawVal = Int64(variant)
+            if let enumVal = T(rawValue: T.RawValue(rawVal)) {
+                result.append(enumVal)
+            } else {
+                GD.printErr("Failed to convert \(rawVal) to \(T.self)")
+            }
+        }
+        set(result)
+    } catch {
+        GD.printErr(error.description)
+    }
+}
+
 // MARK: Failures with diagnostics
 /// Internal API. Catch-all-overload for optional unsupported types.
 @available(*, unavailable, message: "The type is not supported by @Export macro")

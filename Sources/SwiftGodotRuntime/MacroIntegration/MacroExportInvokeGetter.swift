@@ -21,6 +21,15 @@ public func _invokeGetter<T>(
     value.rawValue.toFastVariant()
 }
 
+/// Internal API.  Array of OptionSet or enum with _GodotBridgeable RawValue
+@inline(__always)
+@inlinable
+public func _invokeGetter<T>(
+    _ value: [T]
+) -> FastVariant? where T: RawRepresentable, T: CaseIterable, T.RawValue: BinaryInteger, T.RawValue: VariantConvertible, T.RawValue: _GodotBridgeableBuiltin {
+    return value.map{ $0.rawValue }.toFastVariant()
+}
+
 /// Internal API. Closure
 @inline(__always)
 @inlinable

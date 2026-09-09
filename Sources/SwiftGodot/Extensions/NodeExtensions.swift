@@ -6,6 +6,12 @@
 //
 @_spi(SwiftGodotRuntimePrivate) import SwiftGodotRuntime
 
+/// Internal API marker protocol. Types that are Godot `Node`s conform to this
+/// so that SwiftGodotRuntime code (which does not have access to the `Node`
+/// type itself) can still detect "is this a Node" transitively, without
+/// depending on Godot's ClassDB registration state.
+extension Node: _GodotNodeMarker {}
+
 /// Use the BindNode property wrapper in any subclass of Node to retrieve the node from the
 /// current container that matches the name of the property.
 ///

@@ -203,6 +203,26 @@ public func _propInfo<Root, T>(
     }
 }
 
+/// Internal API. Optional Resource.
+@inline(__always)
+@inlinable
+public func _propInfo<Root, T>(
+    at keyPath: KeyPath<Root, T?>,
+    name: String,
+    userHint: PropertyHint? = nil,
+    userHintStr: String? = nil,
+    userUsage: PropertyUsageFlags? = nil
+) -> PropInfo where T: Resource {
+    return PropInfo(
+        propertyType: T._variantType,
+        propertyName: StringName(name),
+        className: StringName(T._builtinOrClassName ?? ""),
+        hint: userHint ?? .resourceType,
+        hintStr: userHintStr.map { GString($0) } ?? GString(T._builtinOrClassName ?? ""),
+        usage: userUsage ?? .default
+    )
+}
+
 /// Internal API. Optional Object.
 @inline(__always)
 @inlinable
@@ -213,21 +233,13 @@ public func _propInfo<Root, T>(
     userHintStr: String? = nil,
     userUsage: PropertyUsageFlags? = nil
 ) -> PropInfo where T: Object {
-    let typeName = String(describing: T.self)
-    if typeName == "Node" || ClassDB.isParentClass(StringName(typeName), inherits: "Node") {
-        var hint = userHint
-        var hintStr = userHintStr
-
-        if hint == nil && hintStr == nil {
-            hint = .nodeType
-            hintStr = T._builtinOrClassName
-        }
+    if T.self is _GodotNodeMarker.Type {
         return PropInfo(
             propertyType: T._variantType,
             propertyName: StringName(name),
             className: StringName(T._builtinOrClassName ?? ""),
-            hint: hint ?? .none,
-            hintStr: hintStr.map { GString($0) } ?? GString(),
+            hint: userHint ?? .nodeType,
+            hintStr: userHintStr.map { GString($0) } ?? GString(T._builtinOrClassName),
             usage: userUsage ?? .default
         )
     }

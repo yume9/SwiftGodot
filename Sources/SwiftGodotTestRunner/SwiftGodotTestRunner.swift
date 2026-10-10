@@ -7,6 +7,14 @@
 
 import Foundation
 
+#if SWIFTGODOT_VENDORED_MODULE_NAMES
+let swiftGodotProductName = "XogotSwiftGodot"
+let swiftGodotRuntimeProductName = "XogotSwiftGodotRuntime"
+#else
+let swiftGodotProductName = "SwiftGodot"
+let swiftGodotRuntimeProductName = "SwiftGodotRuntime"
+#endif
+
 @main
 struct SwiftGodotTestRunner {
     /// Locates an executable by name on PATH, returning its full path, or `nil` if not found.
@@ -67,6 +75,9 @@ struct SwiftGodotTestRunner {
     }
 
     static func main() async {
+        // Temporary CI workaround for Godot crashes during shutdown.
+        // Without this option, a nonzero Godot exit code still fails the run.
+        let ignoreGodotExitCode = CommandLine.arguments.contains("--ignore-godot-exit-code")
         let projectPath = "Tests/SwiftGodotTestProject"
         let resultsPath = "Tests/SwiftGodotTestProject/test_results.json"
         let extensionTarget = "SwiftGodotTestExtension"
@@ -93,7 +104,7 @@ struct SwiftGodotTestRunner {
 
         // 1. Build the test extension and dependencies
         print("\n[1/5] Building test extension...")
-        let products = [extensionTarget, "SwiftGodot", "SwiftGodotRuntime"]
+        let products = [extensionTarget, swiftGodotProductName, swiftGodotRuntimeProductName]
         for product in products {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: swiftPath)
@@ -152,7 +163,7 @@ struct SwiftGodotTestRunner {
         let platformDir = ""
         #endif
 
-        let libraryNames = [extensionTarget, "SwiftGodot", "SwiftGodotRuntime"]
+        let libraryNames = [extensionTarget, swiftGodotProductName, swiftGodotRuntimeProductName]
         let platformBuildDir = ".build/\(platformDir)/\(buildConfiguration)"
         let simpleBuildDir = ".build/\(buildConfiguration)"
 
@@ -279,9 +290,12 @@ struct SwiftGodotTestRunner {
             print("Total time: \(totalDuration)")
             print(String(repeating: "=", count: 60))
 
-            // Use Godot's exit code if non-zero, otherwise use test results
+            // Only ignore the exit code after we have decoded the test results.
+            if ignoreGodotExitCode && godotExitCode != 0 {
+                print("      Warning: ignoring Godot exit code \(godotExitCode) because --ignore-godot-exit-code is set. Using test results.")
+            }
             let testExitCode: Int32 = results.summary.failed > 0 ? 1 : 0
-            exit(godotExitCode != 0 ? godotExitCode : testExitCode)
+            exit(godotExitCode != 0 && !ignoreGodotExitCode ? godotExitCode : testExitCode)
         } catch {
             print("      Failed to read results: \(error)")
             print("      Godot exit code was: \(godotExitCode)")

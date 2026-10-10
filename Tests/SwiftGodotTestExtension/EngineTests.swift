@@ -3,7 +3,7 @@
 //  SwiftGodotTestExtension
 //
 
-@testable import SwiftGodot
+import SwiftGodot
 
 @SwiftGodotTestSuite
 final class EngineTests {

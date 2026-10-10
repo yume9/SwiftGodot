@@ -105,10 +105,12 @@ public struct SignalWithArguments<each T: _GodotBridgeable> {
     public var emitted: Void {
         get async {
             await withCheckedContinuation { c in
-                let signalProxy = SignalProxy()
-                signalProxy.proxy = { _ in c.resume() }
-                let callable = Callable(object: signalProxy, method: SignalProxy.proxyName)
-                
+                // A closure-backed Callable, so no helper object class has to be registered with the engine.
+                let callable = Callable { _ in
+                    c.resume()
+                    return nil
+                }
+
                 guard let target else {
                     c.resume()
                     return

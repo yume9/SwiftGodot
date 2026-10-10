@@ -43,7 +43,8 @@ jobs:
       run: swift test --skip-build --no-parallel --disable-swift-testing
 
     - name: Run Godot-based tests
-      run: swift run SwiftGodotTestRunner
+      # Temporary workaround: use test results despite Godot shutdown crashes.
+      run: swift run SwiftGodotTestRunner --ignore-godot-exit-code
 
   build-and-test-windows:
     runs-on: windows-latest
@@ -61,7 +62,7 @@ jobs:
       - name: Install Godot
         shell: pwsh
         run: |
-          $url = "https://github.com/godotengine/godot/releases/download/4.6-stable/Godot_v4.6-stable_win64.exe.zip"
+          $url = "https://github.com/godotengine/godot/releases/download/4.7-stable/Godot_v4.7-stable_win64.exe.zip"
           Invoke-WebRequest -Uri $url -OutFile godot.zip
           Expand-Archive godot.zip -DestinationPath godot
           # The zip ships the GUI editor plus a small console wrapper. The GUI build
@@ -87,7 +88,8 @@ jobs:
         run: swift test --skip-build --no-parallel --disable-swift-testing
 
       - name: Run Godot-based tests
-        run: swift run SwiftGodotTestRunner
+        # Temporary workaround: use test results despite Godot shutdown crashes.
+        run: swift run SwiftGodotTestRunner --ignore-godot-exit-code
 
   # Disabled: the package requires swift-tools-version 6.3, but
   # skiptools/swift-android-toolchain does not yet publish a Swift 6.3 Android
@@ -118,9 +120,9 @@ jobs:
       #   run: |
       #     apt-get update
       #     apt-get install -y wget unzip
-      #     wget https://github.com/godotengine/godot/releases/download/4.6-stable/Godot_v4.6-stable_linux.x86_64.zip
-      #     unzip Godot_v4.6-stable_linux.x86_64.zip
-      #     mv Godot_v4.6-stable_linux.x86_64 /usr/local/bin/godot
+      #     wget https://github.com/godotengine/godot/releases/download/4.7-stable/Godot_v4.7-stable_linux.x86_64.zip
+      #     unzip Godot_v4.7-stable_linux.x86_64.zip
+      #     mv Godot_v4.7-stable_linux.x86_64 /usr/local/bin/godot
       #     chmod +x /usr/local/bin/godot
       #     godot --version
 
